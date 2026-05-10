@@ -1,19 +1,18 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-# jwt is json web token data format for security, like when a user login to system we assign a token which is stored on client side
-# then whenever user req from frontend it pass token which is secured not modifidable and saves "Server" memory
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import os
 import database
+import crud
 
 # login management and security
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-for-development")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440 # Extended to 24 hours for convenience
 
 # password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -52,11 +51,8 @@ def get_current_user(conn = Depends(database.get_db), token: str = Depends(oauth
     except JWTError:
         raise credentials_exception
     
-    # We use a cursor to find the user in our database using their email
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    cursor.close()
+    # Use crud to fetch user with skills
+    user = crud.get_user_by_email(conn, email=email)
     
     if user is None:
         raise credentials_exception

@@ -24,12 +24,26 @@ const SkillRadar = ({ skills }) => {
   const labels = skills.map(s => s.skill.skill_name);
   const dataValues = skills.map(s => s.proficiency_level);
 
+  // Radar charts need at least 3 points to look like a shape.
+  // If we have 1 or 2 skills, we'll repeat them with 0 value to maintain the chart structure
+  // but keep the visual focus on the actual skills.
+  let displayLabels = [...labels];
+  let displayValues = [...dataValues];
+
+  if (labels.length === 1) {
+    displayLabels = [labels[0], '', ''];
+    displayValues = [dataValues[0], 0, 0];
+  } else if (labels.length === 2) {
+    displayLabels = [labels[0], labels[1], ''];
+    displayValues = [dataValues[0], dataValues[1], 0];
+  }
+
   const data = {
-    labels: labels.length > 0 ? labels : ['No Skills Added'],
+    labels: displayLabels.length > 0 ? displayLabels : ['No Skills'],
     datasets: [
       {
         label: 'Proficiency (%)',
-        data: dataValues.length > 0 ? dataValues : [0],
+        data: displayValues.length > 0 ? displayValues : [0],
         backgroundColor: 'rgba(99, 102, 241, 0.2)',
         borderColor: '#6366f1',
         borderWidth: 2,
@@ -37,6 +51,7 @@ const SkillRadar = ({ skills }) => {
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderColor: '#6366f1',
+        tension: 0.4,
       },
     ],
   };
@@ -44,40 +59,35 @@ const SkillRadar = ({ skills }) => {
   const options = {
     scales: {
       r: {
-        angleLines: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        },
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        },
+        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
         pointLabels: {
           color: '#94a3b8',
-          font: {
-            size: 12,
-            family: "'Plus Jakarta Sans', sans-serif",
-          },
+          font: { size: 10, weight: '700' },
+          padding: 10
         },
         ticks: {
-          backdropColor: 'transparent',
-          color: '#94a3b8',
+          display: false,
           beginAtZero: true,
           max: 100,
-          stepSize: 20,
         },
         suggestedMin: 0,
         suggestedMax: 100,
       },
     },
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => ` Proficiency: ${context.raw}%`
+        }
+      }
     },
     maintainAspectRatio: false,
   };
 
   return (
-    <div className="w-full h-full min-h-[300px]">
+    <div className="w-full h-full flex-center">
       <Radar data={data} options={options} />
     </div>
   );

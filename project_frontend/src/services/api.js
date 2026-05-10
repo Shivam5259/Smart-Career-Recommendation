@@ -30,5 +30,24 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+/**
+ * Response Interceptor: Handles expired sessions.
+ * If the server says our token is "Unauthorized" (401), we automatically
+ * log out and send the user to the login page.
+ */
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Clear token and redirect if the session expired
+      localStorage.removeItem('token');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
 

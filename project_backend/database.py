@@ -66,7 +66,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS careers (
             id SERIAL PRIMARY KEY,
-            career_title VARCHAR(150) NOT NULL,
+            career_title VARCHAR(150) UNIQUE NOT NULL,
             description TEXT,
             industry VARCHAR(100),
             average_salary NUMERIC
